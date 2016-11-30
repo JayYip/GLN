@@ -8,40 +8,17 @@ import os
 import sys
 import random
 from sklearn import preprocessing
-from sklearn.preprocessing import OneHotEncoder, LabelEncoder
+
 # configuration
 # currently i assume the ImageNet dataset consists of tons of image files and a single corresponding label file
 num_total_images = 0
 num_classes = 0
-num_batch_size = 20
+num_batch_size = 1
 num_test_size = 500
 path_dataset = "../../big_data/Imagenet_dataset/"
-checkpoint_dir = "./"
 # path_dataset = "dataset/ImageNet/"
 learning_rate = 0.001
 mode = sys.argv[1]
-
-
-class to_one_hot:
-    """Convert list of labels to one-hot encoding"""
-    def __init__(self):
-        self.l_encoder = LabelEncoder()
-        self.oh_encoder = OneHotEncoder()
-
-    def fit_transform(self, label_list):
-        int_encoded = self.l_encoder.fit_transform(label_list)
-        int_encoded = int_encoded.reshape([-1, 1])
-        oh_encoded = self.oh_encoder.fit_transform(int_encoded)
-        return oh_encoded.toarray().tolist()
-
-    def transform(self, label_list):
-        int_encoded = self.l_encoder.transform(label_list)
-        int_encoded = int_encoded.reshape([-1, 1])
-        oh_encoded = self.oh_encoder.transform(int_encoded)
-        return oh_encoded.toarray().tolist()
-        
-
-
 # load training image_path & labels
 # at this stage, just load filename rather than real data
 dataset_images = list()
@@ -62,11 +39,10 @@ for subdir in os.listdir(path_dataset):
         num_total_images += 1
 num_classes = len(set(dataset_labels)) # for test
 text_classes = list(set(dataset_labels)) # for test
-
-encoder = to_one_hot()
-dataset_labels = encoder.fit_transform(dataset_labels)
-
-
+for cls_i in range(len(text_classes)): # for test
+    for i in range(len(dataset_labels)):
+        if dataset_labels[i] == text_classes[cls_i]:
+            dataset_labels[i] = [1 if j == cls_i else 0 for j in range(num_classes)]
 # generate synset.txt (labels' text for printing)
 with open("./synset.txt", "w") as f:
     for cls in text_classes:
@@ -79,13 +55,11 @@ test_dataset_labels = list()
 
 # create an index list mapping "test_image_file" to "class_code"
 test_image_file_label_index = dict()
-
-class_code = []
 for test_label_file in test_paths_labels:
     class_code = list() # binary array for class represent
-
-    class_code = encoder.transform([os.path.splitext(test_label_file)[0].split("/")[-1]])
-
+    for cls_i in range(len(text_classes)):
+        if os.path.splitext(test_label_file)[0].split("/")[-1] == text_classes[cls_i]:
+            class_code = [1 if j == cls_i else 0 for j in range(num_classes)]
     with open(test_label_file, "r") as f:
         lines = f.readlines()
         for line in lines:
@@ -93,8 +67,6 @@ for test_label_file in test_paths_labels:
             #print(test_image_file_name)
             test_image_file_label_index[test_image_file_name] = class_code
             # print(test_image_file_name, class_code)
-
-
 # load all test images
 #print (test_image_file_label_index)
 for test_image_file_name in os.listdir(path_dataset + "test"):
@@ -124,30 +96,28 @@ if __name__=='__main__':
     train_mode = tf.placeholder(tf.bool)
 
     #vgg = vgg19.Vgg19('./vgg19.npy')
-
+    print (mode)
     vgg = vgg19.Vgg19(num_batch_size, norm_mode=mode)
     #vgg.get_tr()
     vgg.build_net(images, train_mode)
     cost = tf.reduce_sum((vgg.prob - labels) ** 2) 
-    correct_prediction = tf.equal(tf.argmax(vgg.prob, 1), tf.argmax(labels, 1))
-    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     cross_entropy = tf.reduce_mean(-tf.reduce_sum(labels * tf.log(vgg.prob), reduction_indices=[1]))
     #cost_val = cost.eval(feed_dict=train_feed_dict)
     #print ('cross entropy: ', cost_val)
-    if mode == 'bn':
-        update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS) 
-        if update_ops: 
-            updates = tf.group(*update_ops)
-        with tf.control_dependencies([updates]):
-            train = tf.train.AdamOptimizer(0.0001).minimize(cost)
-    else:
-        train = tf.train.AdamOptimizer(0.0001).minimize(cost)
-
-
+    train = tf.train.AdamOptimizer(0.0001).minimize(cost)
+    correct_prediction = tf.equal(tf.argmax(vgg.prob, 1), tf.argmax(labels, 1))
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     # print number of variables used: 143667240 variables, i.e. ideal size = 548MB
     # print(vgg.get_var_count())
-    # init checkpoint
-    saver = tf.train.Saver()
+
+    #Change here!!!!!!!!!!!
+    g=tf.get_default_graph()
+    p1=tdb.plot_op(viz.viz_conv_weights,inputs=[g.as_graph_element(tr_conv5_4)])
+    p2=tdb.plot_op(viz.viz_conv_weights,inputs=[g.as_graph_element(tr_conv5_3)])
+    p3=tdb.plot_op(viz.viz_conv_weights,inputs=[g.as_graph_element(tr_conv5_2)])
+    p4=tdb.plot_op(viz.viz_conv_weights,inputs=[g.as_graph_element(tr_conv5_1)])
+
+
     sess.run(tf.initialize_all_variables())
 
     num_data_trained = 0
@@ -155,7 +125,7 @@ if __name__=='__main__':
     dataset_toload = [i for i in range(len(dataset_images))]
     print("check", len(dataset_toload), len(dataset_images))
     random.seed()
-    for i in range(200000):
+    for i in range(1, 10000):
         # a batch of data
         print ('iteration:', i)
         batch_images = list()
@@ -163,16 +133,16 @@ if __name__=='__main__':
         # a random batch of index
         batch_rand = list()
         for _ in range(num_batch_size):
-            rand_chosen_ind = random.choice(dataset_toload)
+            rand_chosen_ind = 0#random.choice(dataset_toload)
             batch_rand.append(rand_chosen_ind)
-            
+            #dataset_toload.remove(rand_chosen_ind)
 
         # construct a batch of training data (images & labels)
         for one_sample in batch_rand:
             # here we load real data
             image_file = utils.load_image(dataset_images[one_sample])
             batch_images.append(image_file)
-            #print(image_file.shape, dataset_images[one_sample], "remove loaded:", one_sample)
+            print(image_file.shape, dataset_images[one_sample], "remove loaded:", one_sample)
             batch_labels.append(dataset_labels[one_sample])
 
         # convert list into array
@@ -190,29 +160,39 @@ if __name__=='__main__':
         }
 
         # simple 1-step training, train with one image
-        acc = cost.eval(feed_dict=train_feed_dict)
-        print ('cross entropy: ', acc)
+        cost_val = cost.eval(feed_dict=train_feed_dict)
+        print ('cross entropy: ', cost_val)
         sess.run(train, feed_dict=train_feed_dict)
+        print (vgg.prob.eval(feed_dict=train_feed_dict))
+        if i % 10 == 0:
+            with open('./cost.txt', 'a') as f:
+                f.write(str(cost_val)+'\n')
+        #for i in range(10):
+        #    utils.print_prob(pred[i], './synset.txt')
         
-        if i % 50 == 0:
+
+        #Change plots here!!!!!!!!!!!!!!!!!!!!!
+        if step % 10 == 0:  
+            status,result=tdb.debug([p1,p2,p3,p4], feed_dict=train_feed_dict, breakpoints=None, break_immediately=False, session=sess)
+
+
+        if i % 111111111 == 0:
             #train_accuracy = accuracy.eval(feed_dict=train_feed_dict)
-            saver.save(sess, checkpoint_dir + 'model.ckpt', global_step=i)
-            with open('./'+mode+'cost.txt', 'a') as f:
-                f.write(str(acc/num_batch_size)+'\n')
             acc_sum = 0#accuracy.eval(feed_dict=test_feed_dict)
-            for j in range(25):
+            for num in range(50):
                 test_feed_dict = {
-                    images : test_dataset_images[num_batch_size*j: num_batch_size*j+num_batch_size], 
-                    labels : test_dataset_labels[num_batch_size*j: num_batch_size*j+num_batch_size], 
+                    images : test_dataset_images[num_batch_size*num:num_batch_size*num+num_batch_size], 
+                    labels : test_dataset_labels[num_batch_size*num:num_batch_size*num+num_batch_size], 
                     train_mode: False
                 }
                 
-                acc_sum += cost.eval(feed_dict=test_feed_dict)
+                acc_sum += accuracy.eval(feed_dict=test_feed_dict)
                 #print (num, acc)
-                
-            acc_sum /= 500
-            with open('./'+mode+'_test_accuracy.txt', 'a') as f1:
-                f1.write(str(acc_sum)+'\n')
+                print(acc_sum)
+            acc_sum /= 50
+            with open('./ln_accuracy.txt', 'a') as f:
+                f.write(str(acc_sum)+'\n')
+
         #if i % 50 == 0：
 
     # test save
