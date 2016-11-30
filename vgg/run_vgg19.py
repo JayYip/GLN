@@ -8,7 +8,7 @@ import os
 import sys
 import random
 from sklearn import preprocessing
-
+from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 # configuration
 # currently i assume the ImageNet dataset consists of tons of image files and a single corresponding label file
 num_total_images = 0
@@ -20,6 +20,28 @@ checkpoint_dir = "./"
 # path_dataset = "dataset/ImageNet/"
 learning_rate = 0.001
 mode = sys.argv[1]
+
+
+class to_one_hot:
+    """Convert list of labels to one-hot encoding"""
+    def __init__(self):
+        self.l_encoder = LabelEncoder()
+        self.oh_encoder = OneHotEncoder()
+
+    def fit_transform(self, label_list):
+        int_encoded = self.l_encoder.fit_transform(label_list)
+        int_encoded = int_encoded.reshape([-1, 1])
+        oh_encoded = self.oh_encoder.fit_transform(int_encoded)
+        return oh_encoded.toarray().tolist()
+
+    def transform(self, label_list):
+        int_encoded = self.l_encoder.transform(label_list)
+        int_encoded = int_encoded.reshape([-1, 1])
+        oh_encoded = self.oh_encoder.transform(int_encoded)
+        return oh_encoded.toarray().tolist()
+        
+
+
 # load training image_path & labels
 # at this stage, just load filename rather than real data
 dataset_images = list()
@@ -40,10 +62,11 @@ for subdir in os.listdir(path_dataset):
         num_total_images += 1
 num_classes = len(set(dataset_labels)) # for test
 text_classes = list(set(dataset_labels)) # for test
-for cls_i in range(len(text_classes)): # for test
-    for i in range(len(dataset_labels)):
-        if dataset_labels[i] == text_classes[cls_i]:
-            dataset_labels[i] = [1 if j == cls_i else 0 for j in range(num_classes)]
+
+encoder = to_one_hot()
+dataset_labels = encoder.fit_transform(dataset_labels)
+
+
 # generate synset.txt (labels' text for printing)
 with open("./synset.txt", "w") as f:
     for cls in text_classes:
@@ -56,11 +79,13 @@ test_dataset_labels = list()
 
 # create an index list mapping "test_image_file" to "class_code"
 test_image_file_label_index = dict()
+
+class_code = []
 for test_label_file in test_paths_labels:
     class_code = list() # binary array for class represent
-    for cls_i in range(len(text_classes)):
-        if os.path.splitext(test_label_file)[0].split("/")[-1] == text_classes[cls_i]:
-            class_code = [1 if j == cls_i else 0 for j in range(num_classes)]
+
+    class_code = encoder.transform([os.path.splitext(test_label_file)[0].split("/")[-1]])
+
     with open(test_label_file, "r") as f:
         lines = f.readlines()
         for line in lines:
@@ -68,6 +93,8 @@ for test_label_file in test_paths_labels:
             #print(test_image_file_name)
             test_image_file_label_index[test_image_file_name] = class_code
             # print(test_image_file_name, class_code)
+
+
 # load all test images
 #print (test_image_file_label_index)
 for test_image_file_name in os.listdir(path_dataset + "test"):
