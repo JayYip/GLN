@@ -42,12 +42,13 @@ def bp_conv(X, W, b, output_shape):
     return tf.nn.conv2d_transpose(X, W, output_shape, strides=[1, 1, 1, 1])
 
 def unpooling(X, name='unpool'):
+    X = tf.mul(X, 0.25)
     sh = X.get_shape().as_list()
     dim = len(sh[1:-1])
     tmp = [-1] + sh[-dim:]
     out = (tf.reshape(X, tmp))
-    for i in range(dim, 0, -1):
-        out = tf.concat(i, [out, tf.zeros_like(out)])
+    for i in range(dim, 0, -1): # 
+        out = tf.concat(i, [out, out])
     out_size = [-1] + [s * 2 for s in sh[1:-1]] + [sh[-1]]
     out = tf.reshape(out, out_size)
     return out
@@ -62,13 +63,25 @@ def bp_fc(X, W, b):
 #####################################
 
 if mode == 'cln':
-    #y_tr = tf.ones([10])
-    pool2_tr = tf.ones([batch_size, 7, 7, 64])
-    conv2_tr = unpooling(pool2_tr)
+    y_tr = tf.ones([batch_size, 10])
+    
+    W_fc2_T = tf.ones([10, 1024])
+    f1_tr = tf.matmul(y_tr, W_fc2_T) * 0.5
+
+    W_fc1_T = tf.ones([1024, 7*7*128])
+    conv3_tr_flat = tf.matmul(f1_tr, W_fc1_T) * 0.5
+
+    conv3_tr = tf.reshape(conv3_tr_flat, [batch_size, 7, 7, 128])
+    W_conv3_T = tf.ones([5, 5, 64, 128])
+
+    pool2_tr = bp_conv(conv3_tr, W_conv3_T, tf.zeros([128]), [batch_size, 7, 7, 64])
+    pool2_tr.set_shape([None, 7, 7, 64])
+
+
+    conv2_tr = unpooling(pool2_tr) * 0.5
     W_conv2_T = tf.ones([5, 5, 32, 64])
     pool1_tr = bp_conv(conv2_tr, W_conv2_T, tf.zeros([64]), [batch_size, 14, 14, 32])
     pool1_tr.set_shape([None, 14, 14, 32])
-    #print (conv2_tr.get_shape().as_list())
     conv1_tr = unpooling(pool1_tr) # bs * 28 * 28 * 32
 
 #####################################
@@ -101,12 +114,26 @@ elif mode == 'cln':
     input2 = conv_layer_norm(input2, conv2_tr)
 
 h_conv2 = tf.nn.relu(input2) # 14 * 14
-h_pool2 = max_pool_2x2(h_conv2) # 7 * 7
-W_fc1 = weight_variable([7 * 7 * 64, 1024])
+h_pool2 = max_pool_2x2(h_conv2) # 7 * 7 * 64
+
+W_conv3 = weight_variable([5, 5, 64, 128])
+b_conv3 = bias_variable([128])
+
+input3 = conv2d(h_pool2, W_conv3) + b_conv3
+if mode == 'bn':
+    input3 = batch_norm(inputs=input3, scale=True)
+elif mode == 'ln':
+    input3 = layer_norm(input3)
+elif mode == 'cln':
+    input3 = conv_layer_norm(input3, conv3_tr)
+
+h_conv3 = tf.nn.relu(input3)
+
+W_fc1 = weight_variable([7 * 7 * 128, 1024])
 b_fc1 = bias_variable([1024])
 
-h_pool2_flat = tf.reshape(h_pool2, [-1, 7 * 7 * 64])
-input3 = tf.matmul(h_pool2_flat, W_fc1) + b_fc1
+h_conv3_flat = tf.reshape(h_conv3, [-1, 7 * 7 * 128])
+input3 = tf.matmul(h_conv3_flat, W_fc1) + b_fc1
 if mode == 'bn':
     input3 = batch_norm(inputs=input3, scale=True)
 elif mode == 'ln':
@@ -129,6 +156,7 @@ elif mode == 'ln':
     input4 = layer_norm(input4)
 elif mode == 'cln':
     input4 = layer_norm(input4)
+
 y_conv = tf.nn.softmax(input4)
 
 cross_entropy = -tf.reduce_sum(y_ * tf.log(y_conv))
