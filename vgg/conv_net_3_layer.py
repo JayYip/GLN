@@ -4,12 +4,20 @@ from tensorflow.contrib.layers import batch_norm, layer_norm
 import numpy as np
 import sys
 from cln import conv_layer_norm
+from read_input import imgnet
 
 slim = tf.contrib.slim
 
 sess = tf.InteractiveSession()
 
-mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
+
+#HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
+imgnet_reader = imgnet()
+imgnet_reader.read_data_sets("../../big_data/Imagenet_dataset/")
+#END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
 x = tf.placeholder("float", shape=[None, 784])
 y_ = tf.placeholder("float", shape=[None, 10])
 train_mode = tf.placeholder(tf.bool)
@@ -173,7 +181,13 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
 sess.run(tf.initialize_all_variables())
 new_cn_val = -np.inf
 for i in range(500):
-    batch = mnist.train.next_batch(50)
+    
+
+    #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    #batch = mnist.train.next_batch(50)#
+    batch = imgnet_reader.next_batch(50)
+    #END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
     if i % 100 == 0:
         cn_val = accuracy.eval(feed_dict={
             x: batch[0], y_: batch[1], train_mode: True, keep_prob: 1.0})
@@ -181,4 +195,7 @@ for i in range(500):
     train_step.run(feed_dict={x: batch[0], y_: batch[1], train_mode: True, keep_prob: 0.5})
 
 print("test accuracy %g" % accuracy.eval(feed_dict={
-    x: mnist.test.images, y_: mnist.test.labels, train_mode: False, keep_prob: 1.0}))
+
+    #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    x: imgnet_reader.test_images, y_: imgnet_reader.test_labels, train_mode: False, keep_prob: 1.0}))
+    #END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
