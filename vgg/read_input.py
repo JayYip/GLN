@@ -94,7 +94,8 @@ class imgnet:
                     #print(test_image_file_name)
                     test_image_file_label_index[test_image_file_name] = class_code
                     # print(test_image_file_name, class_code)
-
+        self.dataset_images = dataset_images
+        self.dataset_labels = dataset_labels
 
         # load all test images
         #print (test_image_file_label_index)
@@ -115,8 +116,7 @@ class imgnet:
         # reshape for tensor
         self.test_images = self.test_images.reshape((num_test_size, 224, 224, 3))
 
-        self.dataset_images = dataset_images
-        self.dataset_labels = dataset_labels
+
 
     def next_batch(self, num_batch_size = 50):
 
@@ -125,16 +125,16 @@ class imgnet:
         # a random batch of index
         batch_rand = list()
         for _ in range(num_batch_size):
-            rand_chosen_ind = random.choice(dataset_toload)
+            rand_chosen_ind = random.choice(range(len(self.dataset_images)))
             batch_rand.append(rand_chosen_ind)
 
         # construct a batch of training data (images & labels)
         for one_sample in batch_rand:
             # here we load real data
-            image_file = utils.load_image(dataset_images[one_sample])
+            image_file = utils.load_image(self.dataset_images[one_sample])
             batch_images.append(image_file)
             #print(image_file.shape, dataset_images[one_sample], "remove loaded:", one_sample)
-            batch_labels.append(dataset_labels[one_sample])
+            batch_labels.append(self.dataset_labels[one_sample])
 
         # convert list into array
         batch_images = np.array(batch_images)
