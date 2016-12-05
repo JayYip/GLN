@@ -24,7 +24,6 @@ def distorted_inputs(batch_size, data_dir= '../../cifardataset/cifar-10-batches-
     ValueError: If no data_dir
   """
 
-  data_dir = os.path.join(data_dir, 'cifar-10-batches-bin')
   images, labels = cifar10_input.distorted_inputs(data_dir=data_dir,
                                                   batch_size=batch_size)
 
@@ -35,7 +34,7 @@ def distorted_inputs(batch_size, data_dir= '../../cifardataset/cifar-10-batches-
   return (images, labels)
 
 
-def inputs(batch_size, eval_data='/cifardataset/cifar-10-batches-py/test_batch'):
+def inputs(batch_size, eval_data='test_batch', data_dir = '../../cifardataset/cifar-10-batches-py'):
   """Construct input for CIFAR evaluation using the Reader ops.
 
   Args:
@@ -49,7 +48,6 @@ def inputs(batch_size, eval_data='/cifardataset/cifar-10-batches-py/test_batch')
     ValueError: If no data_dir
   """
 
-  data_dir = os.path.join(data_dir, 'cifar-10-batches-bin')
   images, labels = cifar10_input.inputs(eval_data=eval_data,
                                         data_dir=data_dir,
                                         batch_size=batch_size)
