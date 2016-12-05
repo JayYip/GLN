@@ -253,7 +253,7 @@ for i in range(50000):
     else:
         loss_sum += loss
     
-    train_step.run(feed_dict={x: batch[0], y_: batch[1], train_mode: True, keep_prob: 0.5})
+    train_step.run(feed_dict={x: batch[0], y_: batch[1], train_mode: True, keep_prob: 1})
 
 print("test accuracy %g" % accuracy.eval(feed_dict={
     #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
