@@ -3,20 +3,21 @@ from tensorflow.examples.tutorials.mnist import input_data
 from tensorflow.contrib.layers import batch_norm, layer_norm
 import numpy as np
 import sys
-from cln4conv import conv_layer_norm
+from cln4vgg import conv_layer_norm
 from read_input import imgnet
 
-slim = tf.contrib.slim
-
 sess = tf.InteractiveSession()
+img_sz = 64
 
 #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
+#mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
+imgnet_reader = imgnet()
+imgnet_reader.read_data_sets("../../big_data/Imagenet_dataset/")
 #END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-x = tf.placeholder("float", shape=[None, 784])
-y_ = tf.placeholder("float", shape=[None, 10])
+x = tf.placeholder("float", shape=[None, img_sz, img_sz, 3])
+y_ = tf.placeholder("float", shape=[None, 5])
 train_mode = tf.placeholder(tf.bool)
 batch_size = tf.shape(x)[0]
 #if train_mode is not None:
@@ -30,11 +31,9 @@ def weight_variable(shape):
     initial = tf.truncated_normal(shape, stddev=0.1)
     return tf.Variable(initial)
 
-
 def bias_variable(shape):
     initial = tf.constant(0.1, shape=shape)
     return tf.Variable(initial)
-
 
 def conv2d(X, W):
     return tf.nn.conv2d(X, W, strides=[1, 1, 1, 1], padding='SAME')
@@ -70,45 +69,45 @@ def bp_fc(X, W, b):
 if mode == 'cln':
     y_tr = tf.ones([batch_size, 10])
     
-    #W_fc2_T = tf.truncated_normal([10, 1024], stddev=0.1)
-    W_fc2_T = tf.ones([10, 1024]) * (1/(10))
-    f1_tr = tf.matmul(y_tr, W_fc2_T) * 0.5
+    W_fc2_T = tf.ones([10, 1024]) * (1/10)
+    f1_tr = tf.matmul(y_tr, W_fc2_T) * 0.5 
 
-    #W_fc1_T = tf.truncated_normal([1024, 7 * 7 * 128], stddev=0.1)
-    W_fc1_T = tf.ones([1024, 7*7*128]) * (1/(1024))
-    conv3_tr_flat = tf.matmul(f1_tr, W_fc1_T) * 0.5
+    W_fc1_T = tf.ones([1024, 4*4*256]) * (1/1024)
+    pool4_tr_flat = tf.matmul(f1_tr, W_fc1_T) * 0.5
+    pool4_tr = tf.reshape(pool4_tr_flat, [batch_size, 4, 4, 256]) 
+    conv4_tr = unpooling(pool4_tr) * 0.5 # 8 * 8
 
-    conv3_tr = tf.reshape(conv3_tr_flat, [batch_size, 7, 7, 128])
-    #W_conv3_T = tf.truncated_normal([5, 5, 64, 128], stddev=0.1)
+    W_conv4_T = tf.ones([5, 5, 128, 256]) * (1/(5*5*256))
+    pool3_tr = bp_conv(conv4_tr, W_conv4_T, tf.zeros([256]), [batch_size, 8, 8, 128])
+    pool3_tr.set_shape([None, 8, 8, 128])
+    conv3_tr = unpooling(pool3_tr) * 0.5 # 16 * 16
+    
     W_conv3_T = tf.ones([5, 5, 64, 128]) * (1/(5*5*128))
+    pool2_tr = bp_conv(conv3_tr, W_conv3_T, tf.zeros([128]), [batch_size, 16, 16, 64])
+    pool2_tr.set_shape([None, 16, 16, 64])
+    conv2_tr = unpooling(pool2_tr) * 0.5 # 32 * 32
 
-    pool2_tr = bp_conv(conv3_tr, W_conv3_T, tf.zeros([128]), [batch_size, 7, 7, 64])
-    pool2_tr.set_shape([None, 7, 7, 64])
-
-    conv2_tr = unpooling(pool2_tr) * 0.5
-    #W_conv2_T = tf.truncated_normal([5, 5, 32, 64], stddev=0.1)#
     W_conv2_T = tf.ones([5, 5, 32, 64]) * (1/(5*5*64))
-    pool1_tr = bp_conv(conv2_tr, W_conv2_T, tf.zeros([64]), [batch_size, 14, 14, 32])
-    pool1_tr.set_shape([None, 14, 14, 32])
-    conv1_tr = unpooling(pool1_tr) * 0.5# bs * 28 * 28 * 32
+    pool1_tr = bp_conv(conv2_tr, W_conv2_T, tf.zeros([64]), [batch_size, 32, 32, 32])
+    pool1_tr.set_shape([None, 32, 32, 32])
+    conv1_tr = unpooling(pool1_tr) # bs * 64 * 64 * 3
 
 #####################################
 
-W_conv1 = weight_variable([5, 5, 1, 32])
+W_conv1 = weight_variable([5, 5, 3, 32])
 b_conv1 = bias_variable([32])
 
-x_image = tf.reshape(x, [-1, 28, 28, 1]) # 28 * 28
-
-input1 = conv2d(x_image, W_conv1) + b_conv1
+#x_image = tf.reshape(x, [-1, 28, 28, 1]) 
+# x [-1, 32, 32, 3]
+input1 = conv2d(x, W_conv1) + b_conv1
 if mode == 'bn':
     input1 = batch_norm(inputs=input1, scale=True)
 elif mode == 'ln':
     input1 = layer_norm(input1)
 elif mode == 'cln':
-    input1 = conv_layer_norm(input1, conv1_tr, 10)
-
+    input1 = conv_layer_norm(input1, conv1_tr)
 h_conv1 = tf.nn.relu(input1)
-h_pool1 = max_pool_2x2(h_conv1) #  14 * 14
+h_pool1 = max_pool_2x2(h_conv1) #  32 * 32
 
 W_conv2 = weight_variable([5, 5, 32, 64])
 b_conv2 = bias_variable([64])
@@ -119,10 +118,10 @@ if mode == 'bn':
 elif mode == 'ln':
     input2 = layer_norm(input2)
 elif mode == 'cln':
-    input2 = conv_layer_norm(input2, conv2_tr, 10)
+    input2 = conv_layer_norm(input2, conv2_tr)
 
-h_conv2 = tf.nn.relu(input2) # 14 * 14
-h_pool2 = max_pool_2x2(h_conv2) # 7 * 7 * 64
+h_conv2 = tf.nn.relu(input2) # 16 * 16
+h_pool2 = max_pool_2x2(h_conv2) # 16 * 16 * 64
 
 W_conv3 = weight_variable([5, 5, 64, 128])
 b_conv3 = bias_variable([128])
@@ -133,44 +132,49 @@ if mode == 'bn':
 elif mode == 'ln':
     input3 = layer_norm(input3)
 elif mode == 'cln':
-    input3 = conv_layer_norm(input3, conv3_tr, 10)
-
+    input3 = conv_layer_norm(input3, conv3_tr)
 h_conv3 = tf.nn.relu(input3)
+h_pool3 = max_pool_2x2(h_conv3) # 8 * 8 * 64
 
-W_fc1 = weight_variable([7 * 7 * 128, 1024])
-b_fc1 = bias_variable([1024])
+W_conv4 = weight_variable([5, 5, 128, 256])
+b_conv4 = bias_variable([256])
 
-h_conv3_flat = tf.reshape(h_conv3, [-1, 7 * 7 * 128])
-input3 = tf.matmul(h_conv3_flat, W_fc1) + b_fc1
-if mode == 'bn':
-    input3 = batch_norm(inputs=input3, scale=True)
-elif mode == 'ln':
-    input3 = layer_norm(input3)
-elif mode == 'cln':
-    input3 = layer_norm(input3)
-    pass
-h_fc1 = tf.nn.relu(input3)
-
-keep_prob = tf.placeholder("float")
-h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
-
-W_fc2 = weight_variable([1024, 10])
-b_fc2 = bias_variable([10])
-
-input4 = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
+input4 = conv2d(h_pool3, W_conv4)+ b_conv4#tf.matmul(h_conv3_flat, W_fc1) + b_fc1
 if mode == 'bn':
     input4 = batch_norm(inputs=input4, scale=True)
 elif mode == 'ln':
     input4 = layer_norm(input4)
 elif mode == 'cln':
-    input4 = layer_norm(input4)
+    input4 = conv_layer_norm(input4, conv4_tr)
 
-y_conv = tf.nn.softmax(input4)
+h_conv4 = tf.nn.relu(input4) 
+h_pool4 = max_pool_2x2(h_conv4) # 4 * 4 * 128
+h_pool4_flat = tf.reshape(h_pool4, [-1, 4 * 4 * 256])
+
+W_fc1 = weight_variable([4 * 4 * 256, 1024])
+b_fc1 = bias_variable([1024])
+
+input4 = tf.matmul(h_pool4_flat, W_fc1) + b_fc1
+h_fc1 = tf.nn.relu(input4)
+
+keep_prob = tf.placeholder("float")
+h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
+
+W_fc2 = weight_variable([1024, 5])
+b_fc2 = bias_variable([5])
+
+input5 = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
+if mode == 'bn':
+    input5 = batch_norm(inputs=input5, scale=True)
+elif mode == 'ln':
+    input5 = layer_norm(input5)
+elif mode == 'cln':
+    input5 = layer_norm(input5)
+
+y_conv = tf.nn.softmax(input5)
 
 cross_entropy = -tf.reduce_sum(y_ * tf.log(y_conv))
-
 loss_sum = 0
-
 update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS) 
 if mode == 'bn':
     if update_ops: 
@@ -181,12 +185,13 @@ elif mode == 'ln' or mode == 'cln':
     train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
 correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
+
 sess.run(tf.initialize_all_variables())
 new_cn_val = -np.inf
-bs = 20
-for i in range(1, 1000+1):
+for i in range(200):
     #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    batch = mnist.train.next_batch(bs)
+    batch = imgnet_reader.next_batch(50)
+    #END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     loss = cross_entropy.eval(feed_dict={
             x: batch[0], 
             y_: batch[1], 
@@ -202,9 +207,9 @@ for i in range(1, 1000+1):
     else:
         loss_sum += loss
     
-    train_step.run(feed_dict={x: batch[0], y_: batch[1], train_mode: True, keep_prob: 1})
-    
-print("test cross_entropy %g" % cross_entropy.eval(feed_dict={
+    train_step.run(feed_dict={x: batch[0], y_: batch[1], train_mode: True, keep_prob: 0.5})
+
+print("test accuracy %g" % accuracy.eval(feed_dict={
     #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    x: mnist.test.images, y_: mnist.test.labels, train_mode: False, keep_prob: 1.0}))
+    x: imgnet_reader.test_images, y_: imgnet_reader.test_labels, train_mode: False, keep_prob: 1.0}))
     #END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
