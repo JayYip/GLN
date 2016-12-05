@@ -4,6 +4,7 @@ from tensorflow.contrib.layers import batch_norm, layer_norm
 import numpy as np
 import sys
 from cln4vgg import conv_layer_norm
+import os
 #from read_input import imgnet
 from tensorflow.models.image.cifar10 import cifar10_input
 
