@@ -233,10 +233,10 @@ correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
 
 sess.run(tf.initialize_all_variables())
+batch_tensor = distorted_inputs(10)
 new_cn_val = -np.inf
 for i in range(50000):
     #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    batch_tensor = distorted_inputs(10)
     batch = sess.run(batch_tensor)
     #END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     loss = cross_entropy.eval(feed_dict={
