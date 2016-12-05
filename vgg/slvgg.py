@@ -13,7 +13,7 @@ img_sz = 64
 
 #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-def distorted_inputs(batch_size, data_dir= '../../cifardataset/cifar-10-batches-py'):
+def distorted_inputs(batch_size, data_dir= '../../cifardataset/cifar-10-batches-bin'):
   """Construct distorted input for CIFAR training using the Reader ops.
 
   Returns:
@@ -34,7 +34,7 @@ def distorted_inputs(batch_size, data_dir= '../../cifardataset/cifar-10-batches-
   return (images, labels)
 
 
-def inputs(batch_size, eval_data='test_batch', data_dir = '../../cifardataset/cifar-10-batches-py'):
+def inputs(batch_size, eval_data='test_batch', data_dir = '../../cifardataset/cifar-10-batches-bin'):
   """Construct input for CIFAR evaluation using the Reader ops.
 
   Args:
