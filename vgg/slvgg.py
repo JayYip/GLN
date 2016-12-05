@@ -3,18 +3,17 @@ from tensorflow.examples.tutorials.mnist import input_data
 from tensorflow.contrib.layers import batch_norm, layer_norm
 import numpy as np
 import sys
-from cln4vgg import conv_layer_norm
-import os
+from cln4conv import conv_layer_norm
 #from read_input import imgnet
 from tensorflow.models.image.cifar10 import cifar10_input
-
+import os
 sess = tf.InteractiveSession()
 img_sz = 64
 
 
 #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-def distorted_inputs(batch_size, data_dir= '/cifardataset/cifar-10-batches-py'):
+def distorted_inputs(batch_size, data_dir= '../../cifardataset/cifar-10-batches-py'):
   """Construct distorted input for CIFAR training using the Reader ops.
 
   Returns:
@@ -237,9 +236,9 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
 
 sess.run(tf.initialize_all_variables())
 new_cn_val = -np.inf
-for i in range(200):
+for i in range(50000):
     #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    batch = distorted_inputs(50)
+    batch = distorted_inputs(10)
     #END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     loss = cross_entropy.eval(feed_dict={
             x: batch[0], 
@@ -247,8 +246,6 @@ for i in range(200):
             train_mode: True, 
             keep_prob: 1.0})
     if i % 50 == 0:
-        #loss = cross_entropy.eval(feed_dict={
-        #    x: batch[0], y_: batch[1], train_mode: True, keep_prob: 1.0})
         with open('loss'+mode, 'w+') as f:
             f.write(str(loss_sum))
         print("step %d, training cross_entropy %g" % (i, loss_sum))
@@ -256,7 +253,7 @@ for i in range(200):
     else:
         loss_sum += loss
     
-    train_step.run(feed_dict={x: batch[0], y_: batch[1], train_mode: True, keep_prob: 0.5})
+    train_step.run(feed_dict={x: batch[0], y_: batch[1], train_mode: True, keep_prob: 1})
 
 print("test accuracy %g" % accuracy.eval(feed_dict={
     #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

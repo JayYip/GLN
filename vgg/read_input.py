@@ -102,7 +102,7 @@ class imgnet:
         for test_image_file_name in os.listdir(path_dataset + "test"):
             if test_image_file_name.startswith('.'):
                 continue
-            test_image = utils.load_image(path_dataset + "test/" + test_image_file_name)
+            test_image = utils.load_image(path_dataset + "test/" + test_image_file_name, 64)
             test_dataset_images.append(test_image)
             #print("load test image:", test_image.shape, test_image_file_name)
             #print(test_image_file_name, test_image_file_label_index[test_image_file_name])
@@ -114,8 +114,8 @@ class imgnet:
         #lb = preprocessing.LabelBinarizer()
         #test_dataset_labels = lb.fit_transform(test_dataset_labels)
         # reshape for tensor
-        self.test_images = self.test_images.reshape((num_test_size, 224, 224, 3))
-
+        self.test_images = self.test_images.reshape((num_test_size, 64, 64, 3))
+        self.test_labels = self.test_labels.reshape((num_test_size, 5))
 
 
     def next_batch(self, num_batch_size = 50):
@@ -130,10 +130,11 @@ class imgnet:
 
         # construct a batch of training data (images & labels)
         for one_sample in batch_rand:
-            # here we load real data
-            image_file = utils.load_image(self.dataset_images[one_sample])
+            # DATA AUGMENTATION
+            image_file = utils.load_image(self.dataset_images[one_sample], 64)
+            
             batch_images.append(image_file)
-            #print(image_file.shape, dataset_images[one_sample], "remove loaded:", one_sample)
+            
             batch_labels.append(self.dataset_labels[one_sample])
 
         # convert list into array
@@ -142,6 +143,6 @@ class imgnet:
         
         # TODO: official codes convert (num_batch_size, length, width, depth) into (num_batch_size, length * width * depth)
         # but our training function is different
-        batch_images = batch_images.reshape((num_batch_size, 224, 224, 3))
+        batch_images = batch_images.reshape((num_batch_size, 64, 64, 3))
 
         return (batch_images, batch_labels)
