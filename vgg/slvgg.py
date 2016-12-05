@@ -236,7 +236,8 @@ sess.run(tf.initialize_all_variables())
 new_cn_val = -np.inf
 for i in range(50000):
     #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    batch = sess.run(distorted_inputs(10))
+    batch_tensor = distorted_inputs(10)
+    batch = sess.run(batch_tensor)
     #END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     loss = cross_entropy.eval(feed_dict={
             x: batch[0], 
