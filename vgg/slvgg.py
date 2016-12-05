@@ -27,11 +27,11 @@ def distorted_inputs(batch_size, data_dir= '/cifardataset/cifar-10-batches-py'):
   data_dir = os.path.join(data_dir, 'cifar-10-batches-bin')
   images, labels = cifar10_input.distorted_inputs(data_dir=data_dir,
                                                   batch_size=batch_size)
-  if FLAGS.use_fp16:
-    images = tf.image.resize_images(
-        tf.cast(images, tf.float16), 
-        tf.convert_to_tensor([64,64], dtype=tf.int32))
-    labels = tf.cast(labels, tf.float16)
+
+  images = tf.image.resize_images(
+      tf.cast(images, tf.float16), 
+      tf.convert_to_tensor([64,64], dtype=tf.int32))
+  labels = tf.cast(labels, tf.float16)
   return (images, labels)
 
 
@@ -53,11 +53,11 @@ def inputs(batch_size, eval_data='/cifardataset/cifar-10-batches-py/test_batch')
   images, labels = cifar10_input.inputs(eval_data=eval_data,
                                         data_dir=data_dir,
                                         batch_size=batch_size)
-  if FLAGS.use_fp16:
-    images = tf.image.resize_images(
-        tf.cast(images, tf.float16), 
-        tf.convert_to_tensor([64,64], dtype=tf.int32))
-    labels = tf.cast(labels, tf.float16)
+
+  images = tf.image.resize_images(
+      tf.cast(images, tf.float16), 
+      tf.convert_to_tensor([64,64], dtype=tf.int32))
+  labels = tf.cast(labels, tf.float16)
   return (images, labels)
 
 
