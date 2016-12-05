@@ -4,15 +4,63 @@ from tensorflow.contrib.layers import batch_norm, layer_norm
 import numpy as np
 import sys
 from cln4vgg import conv_layer_norm
-from read_input import imgnet
+#from read_input import imgnet
+from tensorflow.models.image.cifar10 import cifar10_input
 
 sess = tf.InteractiveSession()
 img_sz = 64
 
+
 #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
-imgnet_reader = imgnet()
-imgnet_reader.read_data_sets("../../big_data/Imagenet_dataset/")
+
+def distorted_inputs(batch_size, data_dir= '/cifardataset/cifar-10-batches-py'):
+  """Construct distorted input for CIFAR training using the Reader ops.
+
+  Returns:
+    images: Images. 4D tensor of [batch_size, IMAGE_SIZE, IMAGE_SIZE, 3] size.
+    labels: Labels. 1D tensor of [batch_size] size.
+
+  Raises:
+    ValueError: If no data_dir
+  """
+
+  data_dir = os.path.join(data_dir, 'cifar-10-batches-bin')
+  images, labels = cifar10_input.distorted_inputs(data_dir=data_dir,
+                                                  batch_size=batch_size)
+
+  images = tf.image.resize_images(
+      tf.cast(images, tf.float16), 
+      tf.convert_to_tensor([64,64], dtype=tf.int32))
+  labels = tf.cast(labels, tf.float16)
+  return (images, labels)
+
+
+def inputs(batch_size, eval_data='/cifardataset/cifar-10-batches-py/test_batch'):
+  """Construct input for CIFAR evaluation using the Reader ops.
+
+  Args:
+    eval_data: bool, indicating if one should use the train or eval data set.
+
+  Returns:
+    images: Images. 4D tensor of [batch_size, IMAGE_SIZE, IMAGE_SIZE, 3] size.
+    labels: Labels. 1D tensor of [batch_size] size.
+
+  Raises:
+    ValueError: If no data_dir
+  """
+
+  data_dir = os.path.join(data_dir, 'cifar-10-batches-bin')
+  images, labels = cifar10_input.inputs(eval_data=eval_data,
+                                        data_dir=data_dir,
+                                        batch_size=batch_size)
+
+  images = tf.image.resize_images(
+      tf.cast(images, tf.float16), 
+      tf.convert_to_tensor([64,64], dtype=tf.int32))
+  labels = tf.cast(labels, tf.float16)
+  return (images, labels)
+
+
 #END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
@@ -190,7 +238,7 @@ sess.run(tf.initialize_all_variables())
 new_cn_val = -np.inf
 for i in range(200):
     #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    batch = imgnet_reader.next_batch(50)
+    batch = distorted_inputs(50)
     #END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     loss = cross_entropy.eval(feed_dict={
             x: batch[0], 
@@ -211,5 +259,5 @@ for i in range(200):
 
 print("test accuracy %g" % accuracy.eval(feed_dict={
     #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    x: imgnet_reader.test_images, y_: imgnet_reader.test_labels, train_mode: False, keep_prob: 1.0}))
+    x: inputs(10000)[0], y_: inputs(10000)[1], train_mode: False, keep_prob: 1.0}))
     #END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
