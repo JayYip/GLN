@@ -1,9 +1,12 @@
 import tensorflow as tf
 import resnet_v1
 from tensorflow.examples.tutorials.mnist import input_data
+from read_input import imgnet
 
-mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
-x = tf.placeholder("float", shape=[None, 784])
+imgnet_reader = imgnet()
+imgnet_reader.read_data_sets("../../big_data/Imagenet_dataset/")
+
+x = tf.placeholder("float", shape=[None, 224, 224, 3])
 y_ = tf.placeholder("float", shape=[None, 10])
 pred = resnet_v1.resnet_v1_50(x)
 
@@ -22,7 +25,7 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
 sess.run(tf.initialize_all_variables())
 new_cn_val = -np.inf
 for i in range(500):
-    batch = mnist.train.next_batch(50)
+    batch = imgnet_reader.next_batch(50)
     if i % 100 == 0:
         cn_val = accuracy.eval(feed_dict={
             x: batch[0], y_: batch[1]})
@@ -30,4 +33,4 @@ for i in range(500):
     train_step.run(feed_dict={x: batch[0], y_: batch[1]})
 
 print("test accuracy %g" % accuracy.eval(feed_dict={
-    x: mnist.test.images, y_: mnist.test.labels}))
+    x: imgnet_reader.test_images, y_: imgnet_reader.test_labels}))
