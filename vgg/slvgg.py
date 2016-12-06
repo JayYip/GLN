@@ -239,8 +239,8 @@ with tf.Graph().as_default():
       #END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       print ('2', str(loss))
       if i % 50 == 0:
-          with open('loss'+mode, 'w+') as f:
-              f.write(str(loss_sum))
+          with open('loss'+mode, 'a') as f:
+              f.write(str(loss_sum)+'\n')
           print("step %d, training cross_entropy %g" % (i, loss_sum))
           loss_sum = 0
       else:
