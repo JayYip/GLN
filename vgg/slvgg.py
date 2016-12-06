@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
-from tensorflow.contrib.layers import batch_norm, layer_norm
+from tensorflow.contrib.layers import batch_norm #, layer_norm
 import numpy as np
 import sys
 from cln4conv import conv_layer_norm
@@ -13,7 +13,7 @@ img_sz = 64
 
 #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-def distorted_inputs(batch_size, data_dir= '../../cifardataset/cifar-10-batches-bin'):
+def distorted_inputs(batch_size, data_dir= 'cifar-10-batches-bin'):
   """Construct distorted input for CIFAR training using the Reader ops.
 
   Returns:
@@ -58,12 +58,12 @@ def inputs(batch_size, eval_data='test_batch', data_dir = '../../cifardataset/ci
   labels = tf.cast(labels, tf.float16)
   return (images, labels)
 
-
+x, y_ = distorted_inputs(10)
 #END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-x = tf.placeholder("float", shape=[None, img_sz, img_sz, 3])
-y_ = tf.placeholder("float", shape=[None, 5])
+#x = tf.placeholder("float", shape=[None, img_sz, img_sz, 3])
+#y_ = tf.placeholder("float", shape=[None, 5])
 train_mode = tf.placeholder(tf.bool)
 batch_size = tf.shape(x)[0]
 #if train_mode is not None:
@@ -233,17 +233,18 @@ correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
 
 sess.run(tf.initialize_all_variables())
-batch_tensor = distorted_inputs(10)
 new_cn_val = -np.inf
 for i in range(50000):
     #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    batch = sess.run(batch_tensor)
-    #END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     loss = cross_entropy.eval(feed_dict={
-            x: batch[0], 
-            y_: batch[1], 
             train_mode: True, 
             keep_prob: 1.0})
+    #END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    #loss = cross_entropy.eval(feed_dict={
+    #        x: batch[0], 
+    #        y_: batch[1], 
+    #        train_mode: True, 
+    #        keep_prob: 1.0})
     if i % 50 == 0:
         with open('loss'+mode, 'w+') as f:
             f.write(str(loss_sum))
