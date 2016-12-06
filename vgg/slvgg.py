@@ -8,7 +8,7 @@ from cln4conv import conv_layer_norm
 from tensorflow.models.image.cifar10 import cifar10_input
 import os
 
-sess = tf.Session()
+
 img_sz = 64
 
 
@@ -103,6 +103,7 @@ def bp_fc(X, W, b):
 
 
 with tf.Graph().as_default():
+  sess = tf.Session()
   x, y_ = distorted_inputs(10)
   batch_size = tf.shape(x)[0]
   #####################################
