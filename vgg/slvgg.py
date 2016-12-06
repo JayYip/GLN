@@ -13,7 +13,7 @@ img_sz = 64
 
 #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-def distorted_inputs(batch_size, data_dir= '../../cifardataset/cifar-10-batches-bin'):
+def distorted_inputs(batch_size, data_dir= '../../cifar-10-batches-bin'):
   """Construct distorted input for CIFAR training using the Reader ops.
 
   Returns:
@@ -28,9 +28,9 @@ def distorted_inputs(batch_size, data_dir= '../../cifardataset/cifar-10-batches-
                                                   batch_size=batch_size)
 
   images = tf.image.resize_images(
-      tf.cast(images, tf.float16), 
+      tf.cast(images, tf.float32), 
       tf.convert_to_tensor([64,64], dtype=tf.int32))
-  labels = tf.cast(labels, tf.float16)
+  labels = tf.cast(labels, tf.float32)
   return (images, labels)
 
 
@@ -53,17 +53,17 @@ def inputs(batch_size, eval_data='test_batch', data_dir = '../../cifardataset/ci
                                         batch_size=batch_size)
 
   images = tf.image.resize_images(
-      tf.cast(images, tf.float16), 
+      tf.cast(images, tf.float32), 
       tf.convert_to_tensor([64,64], dtype=tf.int32))
-  labels = tf.cast(labels, tf.float16)
+  labels = tf.cast(labels, tf.float32)
   return (images, labels)
 
-
+x, y_ = distorted_inputs(10)
 #END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-x = tf.placeholder("float", shape=[None, img_sz, img_sz, 3])
-y_ = tf.placeholder("float", shape=[None, 5])
+#x = tf.placeholder("float", shape=[None, img_sz, img_sz, 3])
+#y_ = tf.placeholder("float", shape=[None, 5])
 train_mode = tf.placeholder(tf.bool)
 batch_size = tf.shape(x)[0]
 #if train_mode is not None:
@@ -206,8 +206,8 @@ h_fc1 = tf.nn.relu(input4)
 keep_prob = tf.placeholder("float")
 h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
 
-W_fc2 = weight_variable([1024, 5])
-b_fc2 = bias_variable([5])
+W_fc2 = weight_variable([1024, 10])
+b_fc2 = bias_variable([10])
 
 input5 = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
 if mode == 'bn':
@@ -229,21 +229,23 @@ if mode == 'bn':
         train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
 elif mode == 'ln' or mode == 'cln':
     train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
+
 correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
 
 sess.run(tf.initialize_all_variables())
-batch_tensor = distorted_inputs(10)
 new_cn_val = -np.inf
-for i in range(50000):
+for i in range(1, 50001):
+    print(str(i))
     #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    batch = sess.run(batch_tensor)
+    _, loss = sess.run([train_step, cross_entropy])
     #END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    loss = cross_entropy.eval(feed_dict={
-            x: batch[0], 
-            y_: batch[1], 
-            train_mode: True, 
-            keep_prob: 1.0})
+    #loss = cross_entropy.eval(feed_dict={
+    #        x: batch[0], 
+    #        y_: batch[1], 
+    #        train_mode: True, 
+    #        keep_prob: 1.0})
+    print ('2', str(loss))
     if i % 50 == 0:
         with open('loss'+mode, 'w+') as f:
             f.write(str(loss_sum))
@@ -251,10 +253,8 @@ for i in range(50000):
         loss_sum = 0
     else:
         loss_sum += loss
-    
-    train_step.run(feed_dict={x: batch[0], y_: batch[1], train_mode: True, keep_prob: 1})
+    print('3')
+    #train_step.run(feed_dict={train_mode: True, keep_prob: 1})
 
-print("test accuracy %g" % accuracy.eval(feed_dict={
-    #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    x: inputs(10000)[0], y_: inputs(10000)[1], train_mode: False, keep_prob: 1.0}))
+print("test accuracy %g" % sess.run(accuracy))
     #END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
