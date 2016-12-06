@@ -23,7 +23,7 @@ def distorted_inputs(batch_size, data_dir= '../../cifardataset/cifar-10-batches-
   labels = tf.one_hot(tf.cast(labels, tf.int32), depth=10, dtype=tf.int32)
   return (images, labels)
 
-def inputs(batch_size, eval_data='test_batch', data_dir = '../../cifar-10-batches-bin'):
+def inputs(batch_size, eval_data='test_batch', data_dir = '../../cifardataset/cifar-10-batches-bin'):
   """Construct input for CIFAR evaluation using the Reader ops.
 
   Args:
@@ -131,8 +131,7 @@ with tf.Graph().as_default():
           pool1_tr = bp_conv(conv2_tr, W_conv2_T, tf.zeros([64]), [batch_size, 32, 32, 32])
           pool1_tr.set_shape([None, 32, 32, 32])
           conv1_tr = unpooling(pool1_tr) # bs * 64 * 64 * 3
-          W_conv1 = weight_variable([5, 5, 3, 32])
-          b_conv1 = bias_variable([32])
+
 
 
       W_conv1 = weight_variable([5, 5, 3, 32])
@@ -145,7 +144,9 @@ with tf.Graph().as_default():
       elif mode == 'ln':
           input1 = layer_norm(input1)
       elif mode == 'cln':
-          input1 = conv_layer_norm(input1, conv1_tr)
+
+          input1 = conv_layer_norm(input1, conv1_tr, 10)
+
       h_conv1 = tf.nn.relu(input1)
       h_pool1 = max_pool_2x2(h_conv1) #  32 * 32
 
@@ -158,7 +159,9 @@ with tf.Graph().as_default():
       elif mode == 'ln':
           input2 = layer_norm(input2)
       elif mode == 'cln':
-          input2 = conv_layer_norm(input2, conv2_tr)
+
+          input2 = conv_layer_norm(input2, conv2_tr, 10)
+
 
       h_conv2 = tf.nn.relu(input2) # 16 * 16
       h_pool2 = max_pool_2x2(h_conv2) # 16 * 16 * 64
@@ -172,7 +175,9 @@ with tf.Graph().as_default():
       elif mode == 'ln':
           input3 = layer_norm(input3)
       elif mode == 'cln':
-          input3 = conv_layer_norm(input3, conv3_tr)
+
+          input3 = conv_layer_norm(input3, conv3_tr, 10)
+
       h_conv3 = tf.nn.relu(input3)
       h_pool3 = max_pool_2x2(h_conv3) # 8 * 8 * 64
 
@@ -185,7 +190,9 @@ with tf.Graph().as_default():
       elif mode == 'ln':
           input4 = layer_norm(input4)
       elif mode == 'cln':
-          input4 = conv_layer_norm(input4, conv4_tr)
+
+          input4 = conv_layer_norm(input4, conv4_tr, 10)
+
 
       h_conv4 = tf.nn.relu(input4) 
       h_pool4 = max_pool_2x2(h_conv4) # 4 * 4 * 128
@@ -229,7 +236,9 @@ with tf.Graph().as_default():
       train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
 
   #Build accuracy on test data
-  x_test, y_test = inputs(100)
+
+  x_test, y_test = inputs(500)
+
   y_test_ = slvgg(x_test, mode)
   y_test = tf.cast(y_test, tf.float32)
   correct_prediction = tf.equal(tf.argmax(y_test, 1), tf.argmax(y_test_, 1))
@@ -244,14 +253,17 @@ with tf.Graph().as_default():
       _, loss = sess.run([train_step, cross_entropy])
       #END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       if i % 50 == 0:
-          with open('loss'+mode, 'a') as f:
-              f.write(str(loss_sum))
+          with open('loss'+mode+'.txt', 'a') as f1:
+              f1.write(str(loss_sum)+'\n')
           print("step %d, training cross_entropy %g" % (i, loss_sum))
+
+          test_acc = sess.run(accuracy)
+          with open('test_acc_'+mode+'.txt', 'a') as f2:
+            f2.write(str(test_acc)+'\n')
+
           print("test accuracy %g" % sess.run(accuracy))
           #END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           loss_sum = 0
       else:
           loss_sum += loss
-      #train_step.run(feed_dict={train_mode: True, keep_prob: 1})
-
 
