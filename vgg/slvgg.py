@@ -10,7 +10,7 @@ import os
 
 
 img_sz = 64
-
+checkpoint_dir = "./"
 
 #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -103,6 +103,7 @@ def bp_fc(X, W, b):
 
 
 with tf.Graph().as_default():
+  saver = tf.train.Saver()
   sess = tf.Session()
   x, y_ = distorted_inputs(10)
   batch_size = tf.shape(x)[0]
@@ -239,6 +240,7 @@ with tf.Graph().as_default():
       #END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       print ('2', str(loss))
       if i % 50 == 0:
+          saver.save(sess, checkpoint_dir + mode +'model.ckpt', global_step=i)
           with open('loss'+mode, 'a') as f:
               f.write(str(loss_sum)+'\n')
           print("step %d, training cross_entropy %g" % (i, loss_sum))
