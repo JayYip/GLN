@@ -20,11 +20,10 @@ def distorted_inputs(batch_size, data_dir= '../../cifardataset/cifar-10-batches-
   images = tf.image.resize_images(
       tf.cast(images, tf.float32), 
       tf.convert_to_tensor([64,64], dtype=tf.int32))
-  labels = tf.one_hot(tf.cast(labels, tf.float32), dtype = tf.float32)
+  labels = tf.one_hot(tf.cast(labels, tf.int32), depth=10, dtype=tf.int32)
   return (images, labels)
 
-
-def inputs(batch_size, eval_data='test_batch', data_dir = '../../cifardataset/cifar-10-batches-bin'):
+def inputs(batch_size, eval_data='test_batch', data_dir = '../../cifar-10-batches-bin'):
   """Construct input for CIFAR evaluation using the Reader ops.
 
   Args:
@@ -45,9 +44,8 @@ def inputs(batch_size, eval_data='test_batch', data_dir = '../../cifardataset/ci
   images = tf.image.resize_images(
       tf.cast(images, tf.float32), 
       tf.convert_to_tensor([64,64], dtype=tf.int32))
-  labels = tf.one_hot(tf.cast(labels, tf.float32), dtype = tf.float32)
+  labels = tf.one_hot(tf.cast(labels, tf.int32), depth=10, dtype=tf.int32)
   return (images, labels)
-
 
 #END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -212,7 +210,7 @@ with tf.Graph().as_default():
       input5 = layer_norm(input5)
 
   y_conv = tf.nn.softmax(input5)
-
+  y_ = tf.cast(y_, tf.float32)
   cross_entropy = -tf.reduce_sum(y_ * tf.log(y_conv))
   loss_sum = 0
   update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS) 
@@ -235,17 +233,14 @@ with tf.Graph().as_default():
       #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       _, loss = sess.run([train_step, cross_entropy])
       #END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      print ('2', str(loss))
       if i % 50 == 0:
-          with open('loss'+mode, 'w+') as f:
+          with open('loss'+mode, 'a') as f:
               f.write(str(loss_sum))
           print("step %d, training cross_entropy %g" % (i, loss_sum))
           loss_sum = 0
       else:
           loss_sum += loss
-      print('3')
       #train_step.run(feed_dict={train_mode: True, keep_prob: 1})
 
   print("test accuracy %g" % sess.run(accuracy))
       #END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
