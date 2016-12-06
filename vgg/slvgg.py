@@ -20,9 +20,7 @@ def distorted_inputs(batch_size, data_dir= '../../cifardataset/cifar-10-batches-
   images = tf.image.resize_images(
       tf.cast(images, tf.float32), 
       tf.convert_to_tensor([64,64], dtype=tf.int32))
-  print ('resize_images')
-  labels = tf.cast(labels, tf.float32)
-  print ('label')
+  labels = tf.one_hot(tf.cast(labels, tf.float32), dtype = tf.float32)
   return (images, labels)
 
 
@@ -47,7 +45,7 @@ def inputs(batch_size, eval_data='test_batch', data_dir = '../../cifardataset/ci
   images = tf.image.resize_images(
       tf.cast(images, tf.float32), 
       tf.convert_to_tensor([64,64], dtype=tf.int32))
-  labels = tf.cast(labels, tf.float32)
+  labels = tf.one_hot(tf.cast(labels, tf.float32), dtype = tf.float32)
   return (images, labels)
 
 
