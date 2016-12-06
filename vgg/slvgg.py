@@ -227,7 +227,8 @@ with tf.Graph().as_default():
 
   correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
   accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
-
+  # Start the queue runners.
+  tf.train.start_queue_runners(sess=sess)
   sess.run(tf.initialize_all_variables())
   new_cn_val = -np.inf
   for i in range(1, 50001):
