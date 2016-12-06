@@ -14,7 +14,7 @@ img_sz = 64
 
 #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-def distorted_inputs(batch_size, data_dir= '../../cifar-10-batches-bin'):
+def distorted_inputs(batch_size, data_dir= '../../cifardataset/cifar-10-batches-bin'):
   images, labels = cifar10_input.distorted_inputs(data_dir=data_dir,
                                                   batch_size=batch_size)
   images = tf.image.resize_images(
