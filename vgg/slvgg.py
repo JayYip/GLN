@@ -102,33 +102,6 @@ with tf.Graph().as_default():
   sess = tf.Session()
   x, y_ = distorted_inputs(10)
   batch_size = tf.shape(x)[0]
-  #####################################
-
-  if mode == 'cln':
-      y_tr = tf.ones([batch_size, 10])
-      
-      W_fc2_T = tf.ones([10, 1024]) * (1/10)
-      f1_tr = tf.matmul(y_tr, W_fc2_T) * 0.5 
-
-      W_fc1_T = tf.ones([1024, 4*4*256]) * (1/1024)
-      pool4_tr_flat = tf.matmul(f1_tr, W_fc1_T) * 0.5
-      pool4_tr = tf.reshape(pool4_tr_flat, [batch_size, 4, 4, 256]) 
-      conv4_tr = unpooling(pool4_tr) * 0.5 # 8 * 8
-
-      W_conv4_T = tf.ones([5, 5, 128, 256]) * (1/(5*5*256))
-      pool3_tr = bp_conv(conv4_tr, W_conv4_T, tf.zeros([256]), [batch_size, 8, 8, 128])
-      pool3_tr.set_shape([None, 8, 8, 128])
-      conv3_tr = unpooling(pool3_tr) * 0.5 # 16 * 16
-      
-      W_conv3_T = tf.ones([5, 5, 64, 128]) * (1/(5*5*128))
-      pool2_tr = bp_conv(conv3_tr, W_conv3_T, tf.zeros([128]), [batch_size, 16, 16, 64])
-      pool2_tr.set_shape([None, 16, 16, 64])
-      conv2_tr = unpooling(pool2_tr) * 0.5 # 32 * 32
-
-      W_conv2_T = tf.ones([5, 5, 32, 64]) * (1/(5*5*64))
-      pool1_tr = bp_conv(conv2_tr, W_conv2_T, tf.zeros([64]), [batch_size, 32, 32, 32])
-      pool1_tr.set_shape([None, 32, 32, 32])
-      conv1_tr = unpooling(pool1_tr) # bs * 64 * 64 * 3
 
   #####################################
 
@@ -161,6 +134,9 @@ with tf.Graph().as_default():
           W_conv1 = weight_variable([5, 5, 3, 32])
           b_conv1 = bias_variable([32])
 
+
+      W_conv1 = weight_variable([5, 5, 3, 32])
+      b_conv1 = bias_variable([32])
       #x_image = tf.reshape(x, [-1, 28, 28, 1]) 
       # x [-1, 32, 32, 3]
       input1 = conv2d(x, W_conv1) + b_conv1
