@@ -14,7 +14,7 @@ img_sz = 64
 
 #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-def distorted_inputs(batch_size, data_dir= '../../cifar-10-batches-bin'):
+def distorted_inputs(batch_size, data_dir= '../../cifardataset/cifar-10-batches-bin'):
   images, labels = cifar10_input.distorted_inputs(data_dir=data_dir,
                                                   batch_size=batch_size)
   images = tf.image.resize_images(
@@ -226,7 +226,7 @@ with tf.Graph().as_default():
   elif mode == 'ln' or mode == 'cln':
       train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
 
-  correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
+  correct_prediction = tf.equal(tf.argmax(y_conv, 1), y_)
   accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
   # Start the queue runners.
   tf.train.start_queue_runners(sess=sess)
