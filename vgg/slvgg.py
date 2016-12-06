@@ -103,7 +103,7 @@ def bp_fc(X, W, b):
 
 
 with tf.Graph().as_default():
-  saver = tf.train.Saver()
+#  saver = tf.train.Saver()
   sess = tf.Session()
   x, y_ = distorted_inputs(10)
   batch_size = tf.shape(x)[0]
@@ -238,16 +238,14 @@ with tf.Graph().as_default():
       #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       _, loss = sess.run([train_step, cross_entropy])
       #END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      print ('2', str(loss))
       if i % 50 == 0:
-          saver.save(sess, checkpoint_dir + mode +'model.ckpt', global_step=i)
+#          saver.save(sess, checkpoint_dir + mode +'model.ckpt', global_step=i)
           with open('loss'+mode, 'a') as f:
               f.write(str(loss_sum)+'\n')
           print("step %d, training cross_entropy %g" % (i, loss_sum))
           loss_sum = 0
       else:
           loss_sum += loss
-      print('3')
       #train_step.run(feed_dict={train_mode: True, keep_prob: 1})
 
   print("test accuracy %g" % sess.run(accuracy))
