@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
-from tensorflow.contrib.layers import batch_norm #, layer_norm
+from tensorflow.contrib.layers import batch_norm , layer_norm
 import numpy as np
 import sys
 from cln4conv import conv_layer_norm
@@ -13,7 +13,7 @@ img_sz = 64
 
 #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-def distorted_inputs(batch_size, data_dir= 'cifar-10-batches-bin'):
+def distorted_inputs(batch_size, data_dir= '../../cifar-10-batches-bin'):
   """Construct distorted input for CIFAR training using the Reader ops.
 
   Returns:
@@ -28,9 +28,9 @@ def distorted_inputs(batch_size, data_dir= 'cifar-10-batches-bin'):
                                                   batch_size=batch_size)
 
   images = tf.image.resize_images(
-      tf.cast(images, tf.float16), 
+      tf.cast(images, tf.float32), 
       tf.convert_to_tensor([64,64], dtype=tf.int32))
-  labels = tf.cast(labels, tf.float16)
+  labels = tf.cast(labels, tf.float32)
   return (images, labels)
 
 
@@ -53,9 +53,9 @@ def inputs(batch_size, eval_data='test_batch', data_dir = '../../cifardataset/ci
                                         batch_size=batch_size)
 
   images = tf.image.resize_images(
-      tf.cast(images, tf.float16), 
+      tf.cast(images, tf.float32), 
       tf.convert_to_tensor([64,64], dtype=tf.int32))
-  labels = tf.cast(labels, tf.float16)
+  labels = tf.cast(labels, tf.float32)
   return (images, labels)
 
 x, y_ = distorted_inputs(10)
