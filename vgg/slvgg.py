@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
-from tensorflow.contrib.layers import batch_norm, layer_norm
+from tensorflow.contrib.layers import batch_norm , layer_norm
 import numpy as np
 import sys
 from cln4conv import conv_layer_norm
@@ -100,6 +100,7 @@ def bp_fc_2_pool(self, X, height=7, width=7, depth=512):
 def bp_fc(X, W, b):
     X += b 
     return tf.matmul(X, W)
+
 
 with tf.Graph().as_default():
   x, y_ = distorted_inputs(10)
@@ -226,7 +227,8 @@ with tf.Graph().as_default():
 
   correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
   accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
-
+  # Start the queue runners.
+  tf.train.start_queue_runners(sess=sess)
   sess.run(tf.initialize_all_variables())
   new_cn_val = -np.inf
   for i in range(1, 50001):
@@ -247,3 +249,4 @@ with tf.Graph().as_default():
 
   print("test accuracy %g" % sess.run(accuracy))
       #END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
