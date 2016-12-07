@@ -45,6 +45,20 @@ Gradient vanishing is always one of the major difficulties when training state-o
 
 
 \section{Related Work}
+
+    \begin{figure}[t!]
+        \centering
+        \centerline{\includegraphics[width=8cm]{batch_norm}}
+        \caption{Batch Normalization}
+        \label{fig:batch_norm}
+    \end{figure}
+    \begin{figure}[t!]
+        \centering
+        \centerline{\includegraphics[width=8cm]{layer_norm}}
+        \caption{Layer Normalization}
+        \label{fig:layer_norm}
+    \end{figure}
+    
     Some related works to our method are Batch Normalization, Layer Normalization, and Weight Normalization, among which the former two methods should be taken into account more attentively.
     Batch Normalization is a significant algorithm in response to reducing neural networks’ dependency on parameter initialization by means of normalizing each input for each mini-batch with the simple statistics (0 mean and 1 variance) of certain mini-batch, meanwhile accelerating the learning rate in contrast to traditional networks. 
     Nonetheless, there is still an obvious drawback of this method that if the size of mini-batch is too small, the sampling error would make the Batch Normalization perform poorly. This problem can not be resolved due to the inborn feature of Batch Normalization.
@@ -184,16 +198,38 @@ Gradient vanishing is always one of the major difficulties when training state-o
 \section{Experiment Results}
     In this section, we have done experiments in two datasets, one is Mnist and and the other is Cifar-10. We not only simply measure the accuracy and cross entropy, but also try to find out how the approximated accuracy of Fisher Modules influence the final result in Covolutional Layer Normalization and compare robustness to batch size of three normalization methods. In both experiments, Batch Normalization and Layer normalization are baselines. 
     \subsection{Mnist classification}
+    
+    \begin{figure}[t!]
+        \centering
+        \centerline{\includegraphics[width=8cm]{accuracy1}}
+        \caption{Test Accuracy with batch size 5}
+        \label{fig:mnist_acc1}
+    \end{figure}
+    \begin{figure}[t!]
+        \centering
+        \centerline{\includegraphics[width=8cm]{accuracy2}}
+        \caption{Test Accuracy with batch size 50}
+        \label{fig:mnist_acc2}
+    \end{figure}
+    
     MNIST is a simple computer vision dataset. It consists of images of handwritten digits. The MNIST database of handwritten digits, has a training set of 60,000 examples, and a test set of 10,000 examples. The digits have been  size-normalized and centered in a fixed-size image. Each image is 28 pixels by 28 pixels. No preprocessing is needed and done. It is a 10 class classification task.
-    In this experiment, we implement a neural network with three convolutional layers, each followed by a 2x2 max pooling layers. After that there are two fully connected layers. The detailed statistics of the network is in FIGURE[]. We have tried two batch size, 5 and 50 respectively. Theoretically, batch normalization takes more advantage from a bigger batch size. And the experiment result proves it. There is held out test set of 1000 samples, and after each 50 iteration, the trained model is used to measure the accuracy of test set. In this experiment, we measured the back propagation rate $\beta_i^{k_m})$ by (8), i.e., the more accurate way. And the weight parameter $w$ is measure according to the number of fan in units, as mentioned above. 
+    In this experiment, we implement a neural network with three convolutional layers, each followed by a 2x2 max pooling layers. After that there are two fully connected layers. The detailed statistics of the network is in \ref{fig:mnist_acc1} and \ref{fig:mnist_acc2}. We have tried two batch size, 5 and 50 respectively. Theoretically, batch normalization takes more advantage from a bigger batch size. And the experiment result proves it. There is held out test set of 1000 samples, and after each 50 iteration, the trained model is used to measure the accuracy of test set. In this experiment, we measured the back propagation rate $\beta_i^{k_m})$ by (8), i.e., the more accurate way. And the weight parameter $w$ is measure according to the number of fan in units, as mentioned above. 
     
     When the batch size is 50, the Batch normalization still has the highest performance, and the Convolutional Layer Normalization has better performance than Layer Normalization. Since Batch Normalization normalize each unit, it avoids the problem of unit-output relationship calculation. Convolutional Layer Normalization has a solution but it is approximated. When the batch size is big enough, the drawback of depencies in batch size still can be eliminated to less effect than the inaccurate measurement of Fisher Modules. 
     
     However, when the batch size is 5, Convolutional Layer Normalization has test accuracy, and the performance of Batch Normalization decrease rapidly, which proves our assumption that the batch size has high influence on Batch Normalization.
+
+
+    \begin{figure}[t!]
+        \centering
+        \centerline{\includegraphics[width=8cm]{loss_clfar}}
+        \caption{Cross-Entropy comparision}
+        \label{fig:loss_clfar}
+    \end{figure}
     
     \subsection{Cifar-10 classification}
     The CIFAR-10 dataset consists of 60000 32x32 colour images in 10 classes, with 6000 images per class. There are 50000 training images and 10000 test images.
-    In the preprocessing procedure, we have done some data augmentation, such as random lightness, random flipping left or right, random brightness and Gaussian Noise. We also resize the image to 64x64 so that we can put more max pooling layers. Because of the time and computational resource limit, in this experiment, we just test the case when batch size equals to 5. But other than a more accurate method to measure the Fisher Modules, we use a more coarse grain method(15) to calculate them. Our main target is to see how the accuracy of the Fisher Modules affect the final result. And the cross entropy with respect to the iteration is shown in FIGURE[], the Convolutional Layer Normalization still has the best performance. But compared to the Layer Normalization, the difference is quite small. As expected, Batch Normalization is still influenced badly because of the limit of batch size. 
+    In the preprocessing procedure, we have done some data augmentation, such as random lightness, random flipping left or right, random brightness and Gaussian Noise. We also resize the image to 64x64 so that we can put more max pooling layers. Because of the time and computational resource limit, in this experiment, we just test the case when batch size equals to 5. But other than a more accurate method to measure the Fisher Modules, we use a more coarse grain method(15) to calculate them. Our main target is to see how the accuracy of the Fisher Modules affect the final result. And the cross entropy with respect to the iteration is shown in \ref{fig:loss_clfar}, the Convolutional Layer Normalization still has the best performance. But compared to the Layer Normalization, the difference is quite small. As expected, Batch Normalization is still influenced badly because of the limit of batch size. 
 
 \section{Conclusion and Further Work}
     In this project, we propose a new normalization algorithm, Convolutional Layer Normalizaton, to tackle the problem of gradient vanishing. It measures the contribution of a unit to the distribution of final output a relative principled way to 
