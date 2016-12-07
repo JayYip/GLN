@@ -1,0 +1,128 @@
+\documentclass{sig-alternate}
+\begin{document}
+\title{Convolutional Layer Normalization}
+\numberofauthors{4} 
+\author{
+\alignauthor
+Zichao Li\\
+    \affaddr{The Chinese University of Hong Kong}\\
+    \affaddr{1155081754}\\
+    \email{zcli@cse.cuhk.edu.hk}\\
+\alignauthor
+Junpeng Ye\\
+    \affaddr{The Chinese University of Hong Kong}\\
+    \affaddr{1155086759}\\
+    \email{jpye@cse.cuhk.edu.hk}\\
+\and
+\alignauthor
+Yinpeng Guo\\
+    \affaddr{The Chinese University of Hong Kong}\\
+    \affaddr{1155081867}\\
+    \email{ypguo@cse.cuhk.edu.hk}\\
+\alignauthor
+Hongchen Li\\
+    \affaddr{The Chinese University of Hong Kong}\\
+    \affaddr{1155081817}\\
+    \email{lihc@cse.cuhk.edu.hk}\\
+}
+\maketitle
+\begin{abstract}
+    Gradient vanishing is always one of the major difficulties when training state-of-the art neural network. Among various techniques that deal with this problem, batch normalization and layer normalization are the most popular ones because of their simplicity and effectiveness. However, both of them have drawbacks. Batch normalization is not suitable for online learining and layer normalization performs relatively poor when applied to convolutional neural networks. In this report, we propose a new normalization techniques called convolutional layer normalization that tackles the these shortcoming. Compared to batch normalization and layer normalization respectively, convolutional layer normalization is not not sensitive to the mini batch size and more suitable for convolutional neural network.
+\end{abstract}
+
+\keywords {Deep Learning; Optimization; Convolutional Neural Network;}
+\section{Introduction}
+    In contemporary society, deep neural network has been one of the most popular topics in the IT field due to its advanced learning technology. It is one of the deep learning models for systems to achieve the ability of acquiring their own knowledge and discovering new knowledge from raw data. Recent advances in DNN are driven by improvements in algorithms and models, by the availability of large data sets, and by substantially higher throughput computers. Deep learning is a set of algorithms in machine learning which learns in multiple levels, corresponding to distinct levels of concepts, where higher-level concepts are composite of lower-leve lones, in a goal of simplifying the learning tasks of interest or making sense of data. It performs pretty well in many areas, like automatic speech recognition, recommendation system and so on. What’s worth mentioning is that deep learning works espicially well in Computer Vision. Computer vision tasks include methods for acquiring, processing, analyzing and understanding digital images, and in general, deal with the extraction of high-dimensional data from the real world in order to produce numerical or symbolic information. One important application of computer vision is convolutional neural network. Convolutional neural network is a type of feed-forward artificial neural network in which the connectivity pattern between its neurons is inspired by the organization of the animal visual cortex. It is widely used in image recognition systems. Convolutional neural networks have achieved an error rate of 0.23 percent on the MNIST database, which as of February 2012 is the lowest achieved on the database. When applied to facial recognition, they were able to contribute to a large decrease in error rate. The ImageNet Large Scale Visual Recognition Challenge is a benchmark in object classification and detection, with millions of images and hundreds of object classes. In the ILSVRC 2014, which is large-scale visual recognition challenge, almost every highly ranked team used CNN as their basic framework. The winner GoogLeNet[48] (the foundation of DeepDream) increased the mean average precision of object detection to 0.439329, and reduced classification error to 0.06656, the best result to date. Its network applied more than 30 layers. Performance of convolutional neural networks on the ImageNet tests is now close to that of humans.\\
+    However, it is computationally expensive in training state-of-the-art. One important problem that deep neural network faces during the training is the distribution of inputs varies in different layers, causing the gradient vanishing finally. It is also in terms of internal covariate shift in Google’s paper of Batch Normalization [1]. Batch normalization uses the distribution of the summed input to a neuron over a mini-batch of training cases to compute a mean and variance which are then used to normalize the summed input to that neuron on each training case. This significantly reduces the training time in feedforward neural networks. However, the effect of batch normalization is dependent\\
+    on the mini-batch size, which is not suitable for Online Learning. Besides, it is not obvious how to apply it to recurrent neural networks. On the other hand, another method called Layer Normalization [2] is flexible for Online Learning, 
+    but it performs poorly on Convolutional Neural Network. In terms of this problem, we propose a more general version of Layer Normalization, which is called General Layer Normalization(or Convolutional Layer Normalization?). It is robust to the input data, weight initialization, and the form of activation function. In addition, it has no limit on the network architectural and batch size.\\
+    Batch Normalization is a significant algorithm in response to reduce neural networks’ dependency on parameter initialization by means of normalizing each input for each mini-batch with the simple statistics (mean and standard variance) of certain mini-batch, meanwhile accelerating the learning rate in contrast to traditional networks. Nonetheless, there is still a obvious drawback of this method that if the size of mini-batch is too small, the sampling error would make the Batch Normalization perform poorly. This problem can not be resolved due to the inborn feature of Batch Normalization.\\
+    In order to deal with the problem mentioned above, a new method called Layer Normalization is proposed. It consider normalization in a different perspective that to normalize the inputs within each layer rather than within each mini-batch. This improvement is very meaningful because it frees limitation of the size of mini-batch. However, it has a significant assumption that each neuron contributes equally to next layer, which is far away from truth in Convolutional Neural Network.\\
+    Besides, there is another normalization method called Weight Normalization [3], an approach to weights reparameterization which achieved ** in ** field. It is closely related to Batch Normalization that in some special case, e.g. , it can be regarded as equivalent to Batch Normalization[]. However, our method is not kind of reparameterization. Instead, it is invariance under different parameterization of weights, so it is more robust.\\
+
+
+\section{Related Work}
+    Some related works to our method are Batch Normalization, Layer Normalization and Weight Normalization, among which the former two methods should be taken into account more attentively.
+\section{Fisher Modules for Layer Normalization}
+    \subsection{Layer Normalization for Convolutional Layer}
+    Given the special architecture of CNN, we need to find a way to measure the contribution of each unit within the same layer to the final output. Fisher Information Matrix is used in Natural Gradient to measure how the distribution of final output would change with the change of parameters, i.e, 
+    \begin{displaymath}\pmb{F}(w)=E[\frac{\partial\log p(\pmb{w,x})}{\partial w_i}\frac{\partial\log p(\pmb{w,x})}{\partial w_j}] 
+    \end{displaymath}
+    In the normalization case, we want to measure the change of output with respect to the each unit. And we also need to adapt the FIM to neural network. For unit $k_n, k_m$ in output layer $l_{out}$, the associated entry of the FIM should be:
+    \begin{equation}
+        \pmb{F}_{k_nk_n} = E[\frac{\partial\log p(y)}{\partial a_{k_n}}\frac{\partial\log p(y)}{\partial a_{k_m}}]
+    \end{equation}
+    Thus the norm $||\delta y||$ of the probability distribution of output is 
+    \begin{equation}
+        ||\delta y|| = \sum_i\sum_j\sum_{k_n}\sum_{k_m}E[\frac{\partial\log p(y)}{\partial a_{k_n}}\frac{\partial\log p(y)}{\partial a_{k_m}}\delta a_i\delta a_j]
+    \end{equation}
+    where $a_{k_n}$ denotes the output of unit $k_n$.
+    It is easy to scale the entry to each hidden unit through back propagation$\frac{\partial a_k}{\partial a_i}=\beta_i^{k}$.
+    where $\beta_i^{k}$ is the back propagation rate\cite{LeCun1998}
+    Set $\beta_{k_n}^{k_n}:=1$ for $k_n$ in the output layer and $\beta_{k_m}^{k_m}:=0$. Let one output unit $k_n$ equals to 1 and others equals to 0, 
+    \begin{equation}
+        \beta_{i}^{k_n} = \sum_{j, i\rightarrow j}w_{ij}\nabla a_j \beta_j^{k_n} 
+    \end{equation}
+    where $\nable a_j$ is the gradient of the activation function in unit $a_j$. It can be regarded as a unit of back propagation value, thus the name. 
+    (2) can be futher extended to:
+    \begin{equation}
+        ||\delta y|| = \sum_i\sum_j\sum_{k_n}\sum_{k_m}\pmb{F}_{k_nk_m}\beta_i^{k_n}\beta_j^{k_m}
+    \end{equation}
+    $\pmb{F}_{k_nk_m}$ varies in different activation functions of output layer. And consequently the resulting block of $\pmb{F}_{i,j}$ is distinctive:
+    \begin{enumerate}
+        \item For the sigmoid function
+        \begin{equation}
+            \pmb{F}_{i,j} = \sum_{k}\frac{\beta_i^{k_m}\beta_j^{k_m}}{a_{k_m}(1-a_{k_m})}
+        \end{equation}
+        \item For the softmax function
+        \begin{equation}
+            \begin{aligned}
+            \pmb{F}_{i,j} = \frac{1}{\sum_k e^{a_{k_m}}}\sum_k [e^{a_{k_m}}\beta_i^{k_m}\beta_j^{k_m}]
+            \\
+            -(\frac{1}{\sum_k e^{a_{k_m}}})^{2}(\sum_k e^{a_{k_m}}\beta_i^{k_m}\beta_j^{k_m})
+            \end{aligned}
+        \end{equation}
+        \item For the linear mapping
+        \begin{equation}
+            \pmb{F}_{i,j} = \sum_k \beta_i^{k_m}\beta_j^{k_n}
+        \end{equation}
+    \end{enumerate}
+    If we assume the units within same layer is independent of each other, only the block diagonal entries of the FIM is needed. Then only $\pmb{F}_{i,i}$ is taken into account. Define $\Phi_i(x) \equiv \pmb{F}_{i, i}$. For instance, for the classification task, which is included in our experiment later
+    \begin{equation}
+        \begin{aligned}
+         \Phi_i(x)= \frac{1}{\sum_k e^{a_{k_m}}}\sum_k [e^{a_{k_m}}(\beta_i^{k_m})^{2}]\\
+         -(\frac{1}{\sum_k e^{a_{k_m}}})^{2}(\sum_k e^{a_{k_m}}\beta_i^{k_m})^{2}
+        \end{aligned}
+    \end{equation}
+    These conclusions are mostly derived by \cite{DBLP:journals/corr/abs-1303-0818}. It is intuitive to follow this approach to measure the contribution of each hidden unit to the final output. But it is nearly impossible to measure $\Phi_i(x)$ accurately. First of all, the computational cost of back propagation rate $\Phi_i(x)$ is proportional to number of output units. If there are $n$ output units, it takes $n$ times to calculate all the $\beta_i^{k_m}$ for a certain unit. The computational cost is $O(n_{output}n_{input})$, which is huge.  Besides, the value of $w$ and $\nable a$ changes in each iteration, it means that it takes double time to compute the fisher modules. 
+    
+    Recall the original Fisher Modules $\Phi_i(x)$ is the contribution of unit $i$ for a certain input $x$, but what we need here is another method to compute the expectation value of $\Phi_i(x)$ with expect to $y, w, x, \nable a$. Assume an informative prior over the final output, i.e., $a_k = 1/n_{class}$. Or it can be set by the output class distribution in training set. For $\nable a$, we can directly calculate the expectation value in the following way:
+    \begin{enumerate}
+        \item For Relu activation:
+            \begin{equation}
+            Ea_i = \frac{1}{2} \times 0 + \frac{1}{2} \times 1 = \frac{1}{2}
+            \end{equation}
+        \item For Sigmoid activation:
+            \begin{equation}
+            Ea_i = 
+            \end{equation}
+    \end{enumerate}
+
+    
+    \subsection{full algorithm}
+\section{Experiment Results}
+    \subsection{Mnist classification}
+    MNIST is a simple computer vision dataset. It consists of images of handwritten digits. The MNIST database of handwritten digits, has a training set of 60,000 examples, and a test set of 10,000 examples. The digits have been size-normalized and centered in a fixed-size image. It is a good database for people who want to try learning techniques and pattern recognition methods on real-world data while spending minimal efforts on preprocessing and formatting. Each image is 28 pixels by 28 pixels.
+    
+    \subsection{Cifar-10 classification}
+    The CIFAR-10 dataset consists of 60000 32x32 colour images in 10 classes, with 6000 images per class. There are 50000 training images and 10000 test images. 
+\section{Invariant under Normalization}
+\section{Citations}
+    Citations to articles \cite{bowman:reasoning,
+    clark:pct, braams:babel, herlihy:methodology},
+    conference proceedings \cite{clark:pct} or
+    books \cite{salas:calculus, Lamport:LaTeX} listed
+    in the Bibliography section of your
+\bibliographystyle{abbrv}
+\bibliography{sigproc} 
+\end{document}

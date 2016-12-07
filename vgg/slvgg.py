@@ -100,12 +100,13 @@ def bp_fc(X, W, b):
 
 with tf.Graph().as_default():
   sess = tf.Session()
-  x, y_ = distorted_inputs(10)
-  batch_size = tf.shape(x)[0]
+  x, y_ = distorted_inputs(5)
+  
 
   #####################################
 
   def slvgg(x, mode):
+      batch_size = tf.shape(x)[0]
       if mode == 'cln':
           y_tr = tf.ones([batch_size, 10])
           
@@ -247,12 +248,13 @@ with tf.Graph().as_default():
   tf.train.start_queue_runners(sess=sess)
   sess.run(tf.initialize_all_variables())
   new_cn_val = -np.inf
-  for i in range(1, 50001):
-      print(str(i))
+  for i in range(1, 100001):
+      
       #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       _, loss = sess.run([train_step, cross_entropy])
       #END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       if i % 50 == 0:
+          print(str(i))
           with open('loss'+mode+'.txt', 'a') as f1:
               f1.write(str(loss_sum)+'\n')
           print("step %d, training cross_entropy %g" % (i, loss_sum))
