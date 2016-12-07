@@ -182,8 +182,8 @@ correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
 sess.run(tf.initialize_all_variables())
 new_cn_val = -np.inf
-bs = 5
-for i in range(1, 500+1):
+bs = 50
+for i in range(1, 1000+1):
     #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     batch = mnist.train.next_batch(bs)
     #loss = cross_entropy.eval(feed_dict={
