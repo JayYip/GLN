@@ -125,4 +125,21 @@ Hongchen Li\\
     in the Bibliography section of your
 \bibliographystyle{abbrv}
 \bibliography{sigproc} 
+
+\section{Sample Algo}
+Algorithms can be included using the commands as shown in algorithm \ref{alg:gradiantdescent}.
+
+    \begin{algorithm}
+        \caption{Gradiant Descent}\label{alg:gradiantdescent}
+        \begin {algorithmic}[1]
+            \STATE \textbf{Initialize} $\omega$
+            \STATE \textbf{Assign} $MaxSteps, \eta$
+            \WHILE{$steps\leq=MaxSteps$}
+                \STATE {Calculate gradient $\frac{\partial Loss} {\partial \omega}$}
+                \STATE {Update parameters: $\omega ^{steps+1} \gets \omega^{steps} + \eta * \frac{\partial Loss} {\partial \omega}$}
+            \ENDWHILE
+            \STATE \textbf{return} $\omega$
+        \end{algorithmic}
+    \end{algorithm}
+    
 \end{document}

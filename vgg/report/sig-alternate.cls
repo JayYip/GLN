@@ -49,6 +49,11 @@
 \usepackage{amssymb}
 \usepackage{amsmath}
 \usepackage{amsfonts}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage[noend]{algpseudocode}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
 % Need this for accents in Arial/Helvetica
 %\usepackage[T1]{fontenc}  % Gerry March 12, 2007 - causes Type 3 problems (body text)
 %\usepackage{textcomp}
