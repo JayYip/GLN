@@ -14,7 +14,6 @@ sess = tf.InteractiveSession()
 mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
 #END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-
 x = tf.placeholder("float", shape=[None, 784])
 y_ = tf.placeholder("float", shape=[None, 10])
 train_mode = tf.placeholder(tf.bool)
@@ -183,7 +182,7 @@ correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
 sess.run(tf.initialize_all_variables())
 new_cn_val = -np.inf
-bs = 50
+bs = 5
 for i in range(1, 500+1):
     #HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     batch = mnist.train.next_batch(bs)
@@ -200,7 +199,7 @@ for i in range(1, 500+1):
         #loss = cross_entropy.eval(feed_dict={
         #    x: batch[0], y_: batch[1], train_mode: True, keep_prob: 1.0})
         with open('acc_'+mode+'.txt','a') as f:
-            f.write(str(acc))
+            f.write(str(acc)+'\n')
         print("step %d, training cross_entropy %g" % (i, acc))
         #loss_sum = 0
     else:
